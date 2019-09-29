@@ -20,9 +20,9 @@ PACMAN_DIRECTIONS = ['North', 'South', 'East', 'West']
 ROTATION_ANGLES = [0, 180, 90, 270]
 MAX_EP_LENGTH = 100
 
-# fdir = '/'.join(os.path.split(__file__)[:-1])
+fdir = '/'.join(os.path.split(__file__)[:-1])
 # print(fdir)
-# layout_params = json.load(open(fdir + '/../../layout_params.json'))
+layout_params = json.load(open(fdir + '/../../layout_params.json'))
 #
 # print("Layout parameters")
 # print("------------------")
