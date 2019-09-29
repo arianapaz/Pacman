@@ -43,11 +43,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
 
-        for i in range(100):
-
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
-
 
     def getValue(self, state):
         """
@@ -61,8 +58,9 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-            "*** YOUR CODE HERE ***"
-            util.raiseNotDefined()
+
+        "*** YOUR CODE HERE ***"
+        util.raiseNotDefined()
 
     def computeActionFromValues(self, state):
         """
