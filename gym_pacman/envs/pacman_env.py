@@ -1,5 +1,6 @@
 import numpy as np
-import json, os
+import json
+import os
 
 import gym
 from gym import spaces
@@ -13,17 +14,11 @@ from gym_pacman.envs.pacmanAgents import OpenAIAgent
 from gym_pacman.envs.game import Actions
 
 DEFAULT_GHOST_TYPE = 'DirectionalGhost'
-
 MAX_GHOSTS = 5
-
 PACMAN_ACTIONS = ['North', 'South', 'East', 'West', 'Stop']
-
 PACMAN_DIRECTIONS = ['North', 'South', 'East', 'West']
 ROTATION_ANGLES = [0, 180, 90, 270]
-
 MAX_EP_LENGTH = 100
-
-import os
 
 fdir = '/'.join(os.path.split(__file__)[:-1])
 print(fdir)
