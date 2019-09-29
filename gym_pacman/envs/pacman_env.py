@@ -1,5 +1,5 @@
 import numpy as np
-import json,os
+import json, os
 
 import gym
 from gym import spaces
@@ -11,7 +11,6 @@ from gym_pacman.envs.layout import getLayout, getRandomLayout
 from gym_pacman.envs.ghostAgents import DirectionalGhost
 from gym_pacman.envs.pacmanAgents import OpenAIAgent
 from gym_pacman.envs.game import Actions
-
 
 DEFAULT_GHOST_TYPE = 'DirectionalGhost'
 
@@ -25,6 +24,7 @@ ROTATION_ANGLES = [0, 180, 90, 270]
 MAX_EP_LENGTH = 100
 
 import os
+
 fdir = '/'.join(os.path.split(__file__)[:-1])
 print(fdir)
 layout_params = json.load(open(fdir + '/../../layout_params.json'))
@@ -32,12 +32,15 @@ layout_params = json.load(open(fdir + '/../../layout_params.json'))
 print("Layout parameters")
 print("------------------")
 for k in layout_params:
-    print(k,":",layout_params[k])
+    print(k, ":", layout_params[k])
 print("------------------")
+
 
 class PacmanEnv(gym.Env):
     layouts = [
-        'capsuleClassic', 'contestClassic', 'mediumClassic', 'mediumGrid', 'minimaxClassic', 'openClassic', 'originalClassic', 'smallClassic', 'capsuleClassic', 'smallGrid', 'testClassic', 'trappedClassic', 'trickyClassic'
+        'capsuleClassic', 'contestClassic', 'mediumClassic', 'mediumGrid', 'minimaxClassic', 'openClassic',
+        'originalClassic', 'smallClassic', 'capsuleClassic', 'smallGrid', 'testClassic', 'trappedClassic',
+        'trickyClassic'
     ]
 
     noGhost_layouts = [l + '_noGhosts' for l in layouts]
@@ -46,10 +49,10 @@ class PacmanEnv(gym.Env):
     num_envs = 1
 
     observation_space = spaces.Box(low=0, high=255,
-            shape=(84, 84, 3), dtype=np.uint8)
+                                   shape=(84, 84, 3), dtype=np.uint8)
 
     def __init__(self):
-        self.action_space = spaces.Discrete(4) # up, down, left right
+        self.action_space = spaces.Discrete(4)  # up, down, left right
         self.display = PacmanGraphics(1.0)
         self._action_set = range(len(PACMAN_ACTIONS))
         self.location = None
@@ -59,14 +62,14 @@ class PacmanEnv(gym.Env):
         self.np_random = None
 
     def setObservationSpace(self):
-        screen_width, screen_height = self.display.calculate_screen_dimensions(self.layout.width,   self.layout.height)
+        screen_width, screen_height = self.display.calculate_screen_dimensions(self.layout.width, self.layout.height)
         self.observation_space = spaces.Box(low=0, high=255,
-            shape=(int(screen_height),
-                int(screen_width),
-                3), dtype=np.uint8)
+                                            shape=(int(screen_height),
+                                                   int(screen_width),
+                                                   3), dtype=np.uint8)
 
     def chooseLayout(self, randomLayout=True,
-        chosenLayout=None, no_ghosts=True):
+                     chosenLayout=None, no_ghosts=True):
 
         if randomLayout:
             self.layout = getRandomLayout(layout_params, self.np_random)
@@ -76,7 +79,7 @@ class PacmanEnv(gym.Env):
                     chosenLayout = self.np_random.choice(self.layouts)
                 else:
                     chosenLayout = self.np_random.choice(self.noGhost_layouts)
-            self.chosen_layout = chosenLayout
+            # self.chosen_layout = chosenLayout
             print("Chose layout", chosenLayout)
             self.layout = getLayout(chosenLayout)
         self.maze_size = (self.layout.width, self.layout.height)
@@ -89,9 +92,8 @@ class PacmanEnv(gym.Env):
 
     def reset(self, layout=None):
         # get new layout
-        #if self.layout is None:
+        # if self.layout is None:
         #    self.chooseLayout(randomLayout=True)
-
         if layout is not None:
             self.chooseLayout(False, layout, False)
         else:
@@ -104,7 +106,7 @@ class PacmanEnv(gym.Env):
         self.setObservationSpace()
 
         # we don't want super powerful ghosts
-        self.ghosts = [DirectionalGhost(i+1, prob_attack=0.8, prob_scaredFlee=0.2) for i in range(MAX_GHOSTS)]
+        self.ghosts = [DirectionalGhost(i + 1, prob_attack=0.2, prob_scaredFlee=0.2) for i in range(MAX_GHOSTS)]
 
         # this agent is just a placeholder for graphics to work
         self.pacman = OpenAIAgent()
@@ -113,7 +115,7 @@ class PacmanEnv(gym.Env):
         self.rules.quiet = False
 
         self.game = self.rules.newGame(self.layout, self.pacman, self.ghosts,
-            self.display, False, False)
+                                       self.display, False, False)
 
         self.game.init()
 
@@ -122,7 +124,8 @@ class PacmanEnv(gym.Env):
 
         self.location = self.game.state.data.agentStates[0].getPosition()
         self.ghostLocations = [a.getPosition() for a in self.game.state.data.agentStates[1:]]
-        self.ghostInFrame = any([np.sum(np.abs(np.array(g) - np.array(self.location))) <= 2 for g in self.ghostLocations])
+        self.ghostInFrame = any(
+            [np.sum(np.abs(np.array(g) - np.array(self.location))) <= 2 for g in self.ghostLocations])
 
         self.location_history = [self.location]
         self.orientation = PACMAN_DIRECTIONS.index(self.game.state.data.agentStates[0].getDirection())
@@ -155,6 +158,7 @@ class PacmanEnv(gym.Env):
                 'curr_orientation': [[self.orientation_history[-1]]],
                 'illegal_move_counter': [self.illegal_move_counter],
                 'step_counter': [[self.step_counter]],
+                'num_food': self.game.state.getNumFood(),
                 'ghost_positions': [self.ghostLocations],
                 'r': [self.cum_reward],
                 'l': [self.step_counter],
@@ -165,7 +169,6 @@ class PacmanEnv(gym.Env):
                 }]
             }
 
-
         pacman_action = PACMAN_ACTIONS[action]
 
         legal_actions = self.game.state.getLegalPacmanActions()
@@ -173,7 +176,7 @@ class PacmanEnv(gym.Env):
         if pacman_action not in legal_actions:
             self.illegal_move_counter += 1
             illegal_action = True
-            pacman_action = 'Stop' # Stop is always legal
+            pacman_action = 'Stop'  # Stop is always legal
 
         reward = self.game.step(pacman_action)
         self.cum_reward += reward
@@ -190,11 +193,13 @@ class PacmanEnv(gym.Env):
         self.orientation = PACMAN_DIRECTIONS.index(self.game.state.data.agentStates[0].getDirection())
         self.orientation_history.append(self.orientation)
 
-        extent = (self.location[0] - 1, self.location[1] - 1),(self.location[0] + 1, self.location[1] + 1),
-        self.ghostInFrame = any([ g[0] >= extent[0][0] and g[1] >= extent[0][1] and g[0] <= extent[1][0] and g[1] <= extent[1][1]
-            for g in self.ghostLocations])
+        extent = (self.location[0] - 1, self.location[1] - 1), (self.location[0] + 1, self.location[1] + 1),
+        self.ghostInFrame = any(
+            [g[0] >= extent[0][0] and g[1] >= extent[0][1] and g[0] <= extent[1][0] and g[1] <= extent[1][1]
+             for g in self.ghostLocations])
         self.step_counter += 1
         info = {
+            'num_food': [[self.game.state.getNumFood()]],
             'past_loc': [self.location_history[-2]],
             'curr_loc': [self.location_history[-1]],
             'past_orientation': [[self.orientation_history[-2]]],
@@ -211,7 +216,7 @@ class PacmanEnv(gym.Env):
 
         self.done = done
 
-        if self.done: # only if done, send 'episode' info
+        if self.done:  # only if done, send 'episode' info
             info['episode'] = [{
                 'r': self.cum_reward,
                 'l': self.step_counter
@@ -230,12 +235,12 @@ class PacmanEnv(gym.Env):
         DEFAULT_GRID_SIZE_X, DEFAULT_GRID_SIZE_Y = w / float(self.layout.width), h / float(self.layout.height)
 
         extent = [
-            DEFAULT_GRID_SIZE_X *  (self.location[0] - 1),
-            DEFAULT_GRID_SIZE_Y *  (self.layout.height - (self.location[1] + 2.2)),
-            DEFAULT_GRID_SIZE_X *  (self.location[0] + 2),
-            DEFAULT_GRID_SIZE_Y *  (self.layout.height - (self.location[1] - 1.2))]
+            DEFAULT_GRID_SIZE_X * (self.location[0] - 1),
+            DEFAULT_GRID_SIZE_Y * (self.layout.height - (self.location[1] + 2.2)),
+            DEFAULT_GRID_SIZE_X * (self.location[0] + 2),
+            DEFAULT_GRID_SIZE_Y * (self.layout.height - (self.location[1] - 1.2))]
         extent = tuple([int(e) for e in extent])
-        self.image_sz = (84,84)
+        self.image_sz = (84, 84)
         image = image.crop(extent).resize(self.image_sz)
         return np.array(image)
 
