@@ -1,4 +1,5 @@
 *.pyc
 dist/
 gym_pacman.egg-info
-.idea/
+idea/
+.idea
