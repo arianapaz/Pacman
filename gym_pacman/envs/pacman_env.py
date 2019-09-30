@@ -176,8 +176,9 @@ class PacmanEnv(gym.Env):
         reward = self.game.step(pacman_action)
         self.cum_reward += reward
         # reward shaping for illegal actions
-        if illegal_action:
-            reward -= 10
+        #TODO: stop punishing illegal actions
+        # if illegal_action:
+        #     reward -= 10
 
         done = self.game.state.isWin() or self.game.state.isLose()
 
@@ -194,16 +195,16 @@ class PacmanEnv(gym.Env):
              for g in self.ghostLocations])
         self.step_counter += 1
         info = {
-            'num_food': [[self.game.state.getNumFood()]],
-            'past_loc': [self.location_history[-2]],
-            'curr_loc': [self.location_history[-1]],
-            'past_orientation': [[self.orientation_history[-2]]],
-            'curr_orientation': [[self.orientation_history[-1]]],
-            'illegal_move_counter': [self.illegal_move_counter],
-            'step_counter': [[self.step_counter]],
-            'episode': [None],
-            'ghost_positions': [self.ghostLocations],
-            'ghost_in_frame': [self.ghostInFrame],
+            'num_food': self.game.state.getNumFood(),
+            'past_loc': self.location_history[-2],
+            'curr_loc': self.location_history[-1],
+            'past_orientation': self.orientation_history[-2],
+            'curr_orientation': self.orientation_history[-1],
+            'illegal_move_counter': self.illegal_move_counter,
+            'step_counter': self.step_counter,
+            'episode': None,
+            'ghost_positions': self.ghostLocations,
+            'ghost_in_frame': self.ghostInFrame,
         }
 
         if self.step_counter >= MAX_EP_LENGTH:
