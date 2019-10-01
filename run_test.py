@@ -30,9 +30,9 @@ features = {'intercept': 1,     # y intercept for the linear equation
 # creates a vector the same length as states with random numbers between 1 and 100
 weight_vector = np.random.randint(1, 10, len(features))
 
-# basically creates a 2d dictionary with everything defaulted as 0.0,
-# things are only created when they're indexed
-q_table = defaultdict(lambda: defaultdict(float))
+# basically creates a 2d dictionary with everything defaulted as 0.0
+# the second key is guaranteed to be one of the actions so i just did that instead
+q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
 
 # Default values for learning algorithms
 alpha = 0.05    # smaller learning rates are better, more accurate over time
@@ -61,9 +61,9 @@ def update_features():
 def update_weights(s, a, r, s_prime):
 
     # TODO: create funtion feat(s,a) that returns a feature given s,a
-    # TODO: create a function getValue(s) given s (or s')
     for weight in range(len(weight_vector)):
-        correction = (r + gamma*getValue(s_prime)) - q_table[s][a]
+        max_Q = max(q_table[s_prime])
+        correction = (r + gamma*max_Q) - q_table[s][a]
         theta = feat(s,a)
         weight_vector[weight] = weight_vector[weight] + alpha*correction*theta
 
@@ -88,9 +88,10 @@ if __name__ == '__main__':
             
             # TODO: to generate next state(s_prime) do state.generatePacmanSuccessor(action)
             update_features()
+            w_t = np.transpose(weight_vector)
             q_table[state][action] = float(np.dot(w_t, list(features.values())))
             # TODO: update the weights
-            update_weights(state,action,r,s_prime)
+            update_weights(state, action, r, s_prime)
             # TODO: with probability epsilon take
             #   action = argmax a of Q(s, a). argmax returns the argument a for which Q(s,a) is the largest
             #   otherwise take a random action
