@@ -66,7 +66,6 @@ def update_weights(s, a, r, s_prime):
 
 
 if __name__ == '__main__':
-
     # TODO: based on this algorithm
     #  http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
     for j in range(10000):  # 10000 episodes
@@ -76,20 +75,15 @@ if __name__ == '__main__':
                 action = np.argmax(q_table[state])
             else:
                 action = env.action_space.sample()
-            # TODO: choose a from s using policy derived from Q
-            # TODO: take action a, observe r,s'
+            old_state = state
+            # s <-- s'
             state, r, done, info = env.step(action)
-            # TODO: update Q(s,a)
-            # TODO: s <-- s'
-            # TODO: repeat this process until s is teminal
-
-            
-            # TODO: to generate next state(s_prime) do state.generatePacmanSuccessor(action)
             update_features()
             w_t = np.transpose(weight_vector)
-            q_table[state][action] = float(np.dot(w_t, list(features.values())))
-            # TODO: update the weights
-            update_weights(state, action, r, s_prime)
+            # update Q(s,a)
+            q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
+            # update the weights
+            update_weights(old_state, action, r, state)
             env.render()
             if done:
                 break
