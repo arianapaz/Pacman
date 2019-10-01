@@ -140,7 +140,7 @@ class PacmanEnv(gym.Env):
             'step_counter': [[0]],
         }
 
-        return self._get_image()
+        return self.game.state
 
     def step(self, action):
         # implement code here to take an action
@@ -217,7 +217,7 @@ class PacmanEnv(gym.Env):
                 'r': self.cum_reward,
                 'l': self.step_counter
             }]
-        return self._get_image(), reward, done, info
+        return self.game.state, reward, done, info
 
     def get_action_meanings(self):
         return [PACMAN_ACTIONS[i] for i in self._action_set]
