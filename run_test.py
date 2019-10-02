@@ -5,13 +5,13 @@ import time
 import numpy as np
 from collections import defaultdict
 import gym_pacman.envs.util as util
+import matplotlib.pyplot as plt
 
 ###################################################
 #              Environment Setup                  #
 ###################################################
 env = gym.make('BerkeleyPacmanPO-v0')
 env.seed(1)
-env.chooseLayout(False, "mediumClassic.lay", False)
 done = False
 
 
@@ -68,7 +68,9 @@ def update_weights(s, a, reward, s_prime, feat):
 if __name__ == '__main__':
     # TODO: based on this algorithm
     #  http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
-    for j in range(10000):  # 10000 episodes
+    x = []
+    y = []
+    for j in range(50000):  # 10000 episodes
         state = env.reset("mediumClassic.lay")
         for i in range(100):    # 100 steps (or until pacman dies or wins)
             if util.flipCoin(epsilon):
@@ -85,10 +87,17 @@ if __name__ == '__main__':
             q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
             # update the weights
             update_weights(old_state, action, r, state, old_features)
-            env.render()
+            #env.render()
             if done:
                 break
-        print(info['episode']['r'])
+        print("Episode: {}, Reward: {}".format(j, info['episode']['r']))
+        x.append(j)
+        y.append(info['episode']['r'])
+    plt.scatter(x, y)
+    plt.title('Learning Curve')
+    plt.xlabel('Episodes')
+    plt.ylabel('Score')
+    plt.show()
     env.close()
 
 
