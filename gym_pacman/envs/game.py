@@ -733,7 +733,7 @@ class Game:
         """
             Initiates game, loads agents, creates display, etc.
         """
-        self.display.initialize(self.state.data)
+        # self.display.initialize(self.state.data)
         self.numMoves = 0
 
         agentIndex = self.startingIndex
@@ -879,7 +879,7 @@ class Game:
                 # Allow for game specific conditions (winning, losing, etc.)
                 self.rules.process(self.state, self)
                 # Change the display
-                self.display.update( self.state.data )
+                # self.display.update( self.state.data )
         self.numMoves += 1
         
         if self.gameOver:
@@ -897,5 +897,5 @@ class Game:
                         return
                     
         
-        self.display.updateView()
+        # self.display.updateView()
         return self.state.getScore() - old_reward

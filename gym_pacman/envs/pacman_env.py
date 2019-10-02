@@ -114,8 +114,8 @@ class PacmanEnv(gym.Env):
 
         self.game.init()
 
-        self.display.initialize(self.game.state.data)
-        self.display.updateView()
+        # self.display.initialize(self.game.state.data)
+        # self.display.updateView()
 
         self.location = self.game.state.data.agentStates[0].getPosition()
         self.ghostLocations = [a.getPosition() for a in self.game.state.data.agentStates[1:]]
@@ -176,9 +176,8 @@ class PacmanEnv(gym.Env):
         reward = self.game.step(pacman_action)
         self.cum_reward += reward
         # reward shaping for illegal actions
-        #TODO: stop punishing illegal actions
-        # if illegal_action:
-        #     reward -= 10
+        if illegal_action:
+            reward -= 10
 
         done = self.game.state.isWin() or self.game.state.isLose()
 

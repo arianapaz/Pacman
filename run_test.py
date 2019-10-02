@@ -1,7 +1,6 @@
 from PIL import Image
 import gym
-import gym_pacman
-import time
+import csv
 import numpy as np
 from collections import defaultdict
 import gym_pacman.envs.util as util
@@ -66,29 +65,44 @@ def update_weights(s, a, reward, s_prime, feat):
 
 
 if __name__ == '__main__':
-    # TODO: based on this algorithm
-    #  http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
-    for j in range(10000):  # 10000 episodes
-        state = env.reset("mediumClassic.lay")
-        for i in range(100):    # 100 steps (or until pacman dies or wins)
-            if util.flipCoin(epsilon):
-                action = np.argmax(q_table[state])
-            else:
-                action = env.action_space.sample()
-            old_state = state
-            old_features = list(features.values())
-            # s <-- s'
-            state, r, done, info = env.step(action)
-            update_features()
-            w_t = np.transpose(weight_vector)
-            # update Q(s,a)
-            q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
-            # update the weights
-            update_weights(old_state, action, r, state, old_features)
-            env.render()
-            if done:
-                break
-        print(info['episode']['r'])
+
+    with open('data.csv', 'w', newline='') as writeFile:
+        writer = csv.writer(writeFile)
+
+        # TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
+        for j in range(40000):  # 10000 episodes
+            state = env.reset("mediumClassic.lay")
+
+            for i in range(100):    # 100 steps (or until pacman dies or wins)
+                # get action
+                if util.flipCoin(epsilon):
+                    action = np.argmax(q_table[state])
+                else:
+                    action = env.action_space.sample()
+
+                # save old state and features
+                old_state = state
+                old_features = list(features.values())
+
+                # s <-- s'
+                state, r, done, info = env.step(action)
+                update_features()
+                w_t = np.transpose(weight_vector)
+
+                # update Q(s,a)
+                q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
+
+                # update the weights
+                update_weights(old_state, action, r, state, old_features)
+
+                # env.render()
+                if done:
+                    break
+
+            # save to csv file for graph
+            writer.writerow([str(j), str(info['episode']['r'])])
+            print([str(j), str(info['episode']['r'])])
+    writeFile.close()
     env.close()
 
 
