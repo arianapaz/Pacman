@@ -213,10 +213,10 @@ class PacmanEnv(gym.Env):
         self.done = done
 
         if self.done:  # only if done, send 'episode' info
-            info['episode'] = [{
+            info['episode'] = {
                 'r': self.cum_reward,
                 'l': self.step_counter
-            }]
+            }
         return self.game.state, reward, done, info
 
     def get_action_meanings(self):

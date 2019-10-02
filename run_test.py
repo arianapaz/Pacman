@@ -88,7 +88,7 @@ if __name__ == '__main__':
             env.render()
             if done:
                 break
-        print(info['episode'])
+        print(info['episode']['r'])
     env.close()
 
 
