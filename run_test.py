@@ -25,7 +25,7 @@ features = {'intercept': 1,     # y intercept for the linear equation
             'ghost_near': 0}    # near(1), not near(0)
 
 # creates a vector the same length as states with random numbers between 1 and 100
-weight_vector = np.random.randint(1, 10, len(features))
+weight_vector = np.random.uniform(1, 10, len(features))
 
 # basically creates a 2d dictionary with everything defaulted as 0.0
 # the second key is guaranteed to be one of the actions so i just did that instead
@@ -55,13 +55,13 @@ def update_features():
 #  I finally figured out that the last part of the SGD algorithm is
 #  the feature value of s,a (some refer to it as f_i or f(s,a) or theta(s))
 #  You can double check this in both links and even on amy's notes.
-def update_weights(s, a, r, s_prime):
+def update_weights(s, a, reward, s_prime, feat):
 
     # TODO: create funtion feat(s,a) that returns a feature given s,a
     for weight in range(len(weight_vector)):
         max_q = max(q_table[s_prime])
-        correction = (r + gamma*max_q) - q_table[s][a]
-        theta = feat(s, a)
+        correction = (reward + gamma*max_q) - q_table[s][a]
+        theta = feat[weight]
         weight_vector[weight] = weight_vector[weight] + alpha*correction*theta
 
 
@@ -76,6 +76,7 @@ if __name__ == '__main__':
             else:
                 action = env.action_space.sample()
             old_state = state
+            old_features = list(features.values())
             # s <-- s'
             state, r, done, info = env.step(action)
             update_features()
@@ -83,7 +84,7 @@ if __name__ == '__main__':
             # update Q(s,a)
             q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
             # update the weights
-            update_weights(old_state, action, r, state)
+            update_weights(old_state, action, r, state, old_features)
             env.render()
             if done:
                 break
