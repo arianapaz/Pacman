@@ -56,11 +56,9 @@ def update_features():
 #  the feature value of s,a (some refer to it as f_i or f(s,a) or theta(s))
 #  You can double check this in both links and even on amy's notes.
 def update_weights(s, a, reward, s_prime, feat):
-
-    # TODO: create funtion feat(s,a) that returns a feature given s,a
+    max_q = max(q_table[s_prime])
+    correction = (reward + gamma * max_q) - q_table[s][a]
     for weight in range(len(weight_vector)):
-        max_q = max(q_table[s_prime])
-        correction = (reward + gamma*max_q) - q_table[s][a]
         theta = feat[weight]
         weight_vector[weight] = weight_vector[weight] + alpha*correction*theta
 
