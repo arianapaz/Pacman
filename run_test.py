@@ -30,9 +30,9 @@ weight_vector = np.random.uniform(1, 10, len(features))
 q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
 
 # Default values for learning algorithms
-alpha = 0.05    # smaller learning rates are better, more accurate over time
+alpha = 0.5    # smaller learning rates are better, more accurate over time
 gamma = 0.9     # high values give bigger weight to rewards
-epsilon = 0.7   # high epsilon values = more randomness
+epsilon = 0.5   # high epsilon values = more randomness
 
 
 def update_features():
@@ -62,7 +62,7 @@ def update_weights(s, a, reward, s_prime, feat):
 
 
 if __name__ == '__main__':
-    with open('data.csv', 'w', newline='') as writeFile:
+    with open('data2.csv', 'w', newline='') as writeFile:
         writer = csv.writer(writeFile)
 
         # TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
