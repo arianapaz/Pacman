@@ -2,15 +2,15 @@ import numpy as np
 from collections import defaultdict
 
 if __name__ == '__main__':
-    q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
-    q_table["state"][0] = 1.2
-    q_table["state"][1] = 7.6
-    q_table["state"][3] = 4.5
-    q_table["state1"][0] = 11.9
-    q_table["state1"][1] = 6.8
-    q_table["state1"][3] = 8.3
-    q_table["state1"][4] = 28.7
-    action_of_state = q_table["state1"]
-    print(action_of_state)
-    print(max(action_of_state))
-    print(np.argmax(action_of_state))
+    state = defaultdict()
+    state["Pacman"] = {"x": 1, "y": 2, "Direction": "NORTH"}
+    state["Ghost"] = defaultdict(lambda: {"x": 0, "y": 0})
+    state["Ghost"][0] = {"x": 1, "y": 2}
+    state["Pellets"] = defaultdict(lambda: {"x": 0, "y": 0})
+    state["Pellets"][0] = {"x": 1, "y": 2}
+
+    print(state["Ghost"][0])
+    print(state["Ghost"][1])
+    print(state["Pellets"][0])
+    print(state["Pellets"][1])
+
