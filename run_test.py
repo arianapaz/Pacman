@@ -19,8 +19,8 @@ done = False
 ###################################################
 state = defaultdict()
 state["pacman"] = {"x": 0, "y": 0, "dir": "NORTH"}
-state["ghost"] = defaultdict(int)
-state["pellets"] = defaultdict(int)
+state["ghost"] = defaultdict(lambda: {"x": 0, "y": 0, "dir": 0})
+state["pellets"] = defaultdict(lambda: {"x": 0, "y": 0})
 state["ghost_edible"] = False
 state["num_edible_ghosts"] = 0
 state["pellets_left"] = 0
