@@ -195,6 +195,8 @@ class PacmanEnv(gym.Env):
         self.step_counter += 1
         info = {
             'num_food': self.game.state.getNumFood(),
+            'power_pellets_locations': self.game.state.getCapsules(),
+            'food_location': self.game.state.getFood(),
             'past_loc': self.location_history[-2],
             'curr_loc': self.location_history[-1],
             'past_orientation': self.orientation_history[-2],
