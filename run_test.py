@@ -5,6 +5,7 @@ import numpy as np
 from collections import defaultdict
 import gym_pacman.envs.util as util
 
+
 ###################################################
 #              Environment Setup                  #
 ###################################################
@@ -14,53 +15,48 @@ done = False
 
 
 ###################################################
-#                Features Setup                   #
+#        State and Learning Rate Setup            #
 ###################################################
-features = {'intercept': 1,     # y intercept for the linear equation
-            'food_left': 0,
-            'pacman_x': 0,
-            'pacman_y': 0,
-            'ghost_near': 0}    # near(1), not near(0)
+state = defaultdict()
+state["pacman"] = {"x": 0, "y": 0, "dir": "NORTH"}
+state["ghost"] = defaultdict(int)
+state["pellets"] = defaultdict(int)
+state["ghost_edible"] = False
+state["num_edible_ghosts"] = 0
+state["pellets_left"] = 0
+state["power_pellets_timer"] = 0
+state["power_pellets_left"] = 0
 
-# creates a vector the same length as states with random numbers between 1 and 100
-weight_vector = np.random.uniform(1, 10, len(features))
 
-# basically creates a 2d dictionary with everything defaulted as 0.0
-# the second key is guaranteed to be one of the actions so i just did that instead
+# dictionary that will allow us to use the action name as the key
 q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
 
+
 # Default values for learning algorithms
-alpha = 0.5    # smaller learning rates are better, more accurate over time
+alpha = 0.05    # smaller learning rates are better, more accurate over time
 gamma = 0.9     # high values give bigger weight to rewards
-epsilon = 0.5   # high epsilon values = more randomness
+epsilon = 0.3   # high epsilon values = more randomness
 
 
-def update_features():
-    features['food_left'] = info['num_food']
-    features['pacman_x'] = info['curr_loc'][0]
-    features['pacman_y'] = info['curr_loc'][1]
-    # states['ghost_positions'] = info['ghost_positions']
-    features['ghost_near'] = int(info['ghost_in_frame'])
+def update_states():
+
+    # update pacman's info
+    state['pacman'] = {"x": info['curr_loc'][0],
+                       "y": info['curr_loc'][1],
+                       "dir": info['curr_orientation']}
+
+    # update the ghost's positions
+    for num in len(info['ghost_positions']):
+        state['ghost'][num] = {"x": info['ghost_positions'][num][0],
+                               "y": info['ghost_positions'][num][1]}
+
+    # update info about the pellets
+    state['pellets_left'] = info['num_food']
 
 
-# TODO: i used this two websites as main references
-#  https://frnsys.com/ai_notes/artificial_intelligence/reinforcement_learning.html
-#  https://www.cs.swarthmore.edu/~bryce/cs63/s18/slides/3-23_approximate_ql.pdf
-#  _
-#  The second reference gives a formula that uses V(s') to calculate the correction
-#  but the first one uses max of Q(s',a') but since idk if we will have that I left it as V(s')
-#  _
-#  I finally figured out that the last part of the SGD algorithm is
-#  the feature value of s,a (some refer to it as f_i or f(s,a) or theta(s))
-#  You can double check this in both links and even on amy's notes.
-def update_weights(s, a, reward, s_prime, feat):
-    max_q = max(q_table[s_prime])
-    correction = (reward + gamma * max_q) - q_table[s][a]
-    for weight in range(len(weight_vector)):
-        theta = feat[weight]
-        weight_vector[weight] = weight_vector[weight] + alpha*correction*theta
-
-
+###################################################
+#                     Main                        #
+###################################################
 if __name__ == '__main__':
     with open('data2.csv', 'w', newline='') as writeFile:
         writer = csv.writer(writeFile)
@@ -78,18 +74,15 @@ if __name__ == '__main__':
 
                 # save old state and features
                 old_state = state
-                old_features = list(features.values())
+                old_features = list(state.values())
 
                 # s <-- s'
                 state, r, done, info = env.step(action)
-                update_features()
-                w_t = np.transpose(weight_vector)
+                update_states()
 
+                # TODO: update this to the new formula
                 # update Q(s,a)
-                q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
-
-                # update the weights
-                update_weights(old_state, action, r, state, old_features)
+                # q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
 
                 # env.render()
                 if done:
