@@ -46,7 +46,7 @@ def update_states():
                        "dir": info['curr_orientation']}
 
     # update the ghost's positions
-    for num in len(info['ghost_positions']):
+    for num in range(len(info['ghost_positions'])):
         state['ghost'][num] = {"x": info['ghost_positions'][num][0],
                                "y": info['ghost_positions'][num][1]}
 
