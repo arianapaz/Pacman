@@ -63,11 +63,12 @@ if __name__ == '__main__':
 
         # TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
         for j in range(40000):  # 10000 episodes
-            state = env.reset("mediumClassic.lay")
+            gameState = env.reset("mediumClassic.lay")
 
             for i in range(100):    # 100 steps (or until pacman dies or wins)
                 # get action
                 if util.flipCoin(epsilon):
+                    #TODO: this doesnt work with state as a deafult dict
                     action = np.argmax(q_table[state])
                 else:
                     action = env.action_space.sample()
@@ -77,7 +78,7 @@ if __name__ == '__main__':
                 old_features = list(state.values())
 
                 # s <-- s'
-                state, r, done, info = env.step(action)
+                gameState, r, done, info = env.step(action)
                 update_states()
 
                 # TODO: update this to the new formula
