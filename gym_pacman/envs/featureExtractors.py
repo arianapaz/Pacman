@@ -77,9 +77,7 @@ class SimpleExtractor(FeatureExtractor):
         food = state.getFood()
         walls = state.getWalls()
         ghosts = state.getGhostPositions()
-
         features = util.Counter()
-
         features["bias"] = 1.0
 
         # compute the location of pacman after he takes the action
