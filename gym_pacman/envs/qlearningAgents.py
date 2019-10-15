@@ -21,37 +21,12 @@ import random, math
 
 
 class QLearningAgent(ReinforcementAgent):
-    """
-      Q-Learning Agent
-
-      Functions you should fill in:
-        - computeValueFromQValues
-        - computeActionFromQValues
-        - getQValue
-        - getAction
-        - update
-
-      Instance variables you have access to
-        - self.epsilon (exploration prob)
-        - self.alpha (learning rate)
-        - self.discount (discount rate)
-
-      Functions you should use
-        - self.getLegalActions(state)
-          which returns legal actions for a state
-    """
 
     def __init__(self, **args):
-        "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
         self.q_values = {}
 
     def getQValue(self, state, action):
-        """
-          Returns Q(state,action)
-          Should return 0.0 if we have never seen a state
-          or the Q node value otherwise
-        """
         if (state, action) in self.q_values:
             return self.q_values[state, action]
         else:
@@ -61,22 +36,11 @@ class QLearningAgent(ReinforcementAgent):
         self.q_values[(state, action)] = value
 
     def computeValueFromQValues(self, state):
-        """
-          Returns max_action Q(state,action)
-          where the max is over legal actions.  Note that if
-          there are no legal actions, which is the case at the
-          terminal state, you should return a value of 0.0.
-        """
         q_values = [self.getQValue(state, action) for action in self.getLegalActions(state)]
         if not len(q_values): return 0.0
         return max(q_values)
 
     def computeActionFromQValues(self, state):
-        """
-          Compute the best action to take in a state.  Note that if there
-          are no legal actions, which is the case at the terminal state,
-          you should return None.
-        """
         best_q_value = self.getValue(state)
         best_actions = {}
 
@@ -90,16 +54,6 @@ class QLearningAgent(ReinforcementAgent):
             return random.choice(best_actions)
 
     def getAction(self, state):
-        """
-          Compute the action to take in the current state.  With
-          probability self.epsilon, we should take a random action and
-          take the best policy action otherwise.  Note that if there are
-          no legal actions, which is the case at the terminal state, you
-          should choose None as the action.
-
-          HINT: You might want to use util.flipCoin(prob)
-          HINT: To pick randomly from a list, use random.choice(list)
-        """
         # Pick Action
         legal_actions = self.getLegalActions(state)
         action = None
@@ -112,14 +66,6 @@ class QLearningAgent(ReinforcementAgent):
         return action
 
     def update(self, state, action, next_state, reward):
-        """
-          The parent class calls this to observe a
-          state = action => nextState and reward transition.
-          You should do your Q-Value update here
-
-          NOTE: You should never call this function,
-          it will be called on your behalf
-        """
         alpha = self.alpha
         q_value = self.getQValue(state, action)
         discount = self.discount
