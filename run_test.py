@@ -60,7 +60,7 @@ def update_states():
 #                     Main                        #
 ###################################################
 if __name__ == '__main__':
-    with open('data2.csv', 'w', newline='') as writeFile:
+    with open('data1.csv', 'w', newline='') as writeFile:
         writer = csv.writer(writeFile)
 
         # TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
@@ -71,26 +71,27 @@ if __name__ == '__main__':
                 # get action
                 if util.flipCoin(epsilon):
                     #TODO: this doesnt work with state as a deafult dict
-                    action = np.argmax(q_table[state])
+                    action = np.argmax(q_table[gameState])
+                    print(action)
                 else:
                     action = env.action_space.sample()
 
                 # save old state and features
-                old_state = state
-                old_features = list(state.values())
+                old_state = gameState
+                # old_features = list(state.values())
 
                 # s <-- s'
                 gameState, r, done, info = env.step(action)
-                update_states()
+                # update_states()
 
                 # TODO: update this to the new formula
                 # update Q(s,a)
                 # q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
-
+                max_action = max(q_table[gameState])
+                q_table[old_state][action] += alpha*((r + gamma*max_action) - q_table[old_state][action])
                 # env.render()
                 if done:
                     break
-
             # save to csv file for graph
             writer.writerow([str(j), str(info['episode']['r'])])
             print([str(j), str(info['episode']['r'])])
