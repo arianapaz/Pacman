@@ -2,6 +2,7 @@ from PIL import Image
 import gym
 import csv
 import numpy as np
+import matplotlib.pyplot as plot
 from collections import defaultdict
 import gym_pacman.envs.util as util
 
@@ -58,42 +59,56 @@ def update_states():
 #                     Main                        #
 ###################################################
 if __name__ == '__main__':
-    with open('data1.csv', 'w', newline='') as writeFile:
-        writer = csv.writer(writeFile)
+    # TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
+    episodes = []
+    rewards = []
+    for j in range(5000):  # 10000 episodes
+        gameState = env.reset("smallClassic.lay")
 
-        # TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
-        for j in range(40000):  # 10000 episodes
-            gameState = env.reset("mediumClassic.lay")
+        for i in range(100):    # 100 steps (or until pacman dies or wins)
+            # get action
+            if util.flipCoin(epsilon):
+                #TODO: this doesnt work with state as a deafult dict
+                action = np.argmax(q_table[gameState])
+                # print(action)
+            else:
+                action = env.action_space.sample()
 
-            for i in range(100):    # 100 steps (or until pacman dies or wins)
-                # get action
-                if util.flipCoin(epsilon):
-                    #TODO: this doesnt work with state as a deafult dict
-                    action = np.argmax(q_table[gameState])
-                    print(action)
-                else:
-                    action = env.action_space.sample()
+            # save old state and features
+            old_state = gameState
+            # old_features = list(state.values())
 
-                # save old state and features
-                old_state = gameState
-                # old_features = list(state.values())
+            # s <-- s'
+            gameState, r, done, info = env.step(action)
+            # update_states()
 
-                # s <-- s'
-                gameState, r, done, info = env.step(action)
-                # update_states()
-
-                # TODO: update this to the new formula
-                # update Q(s,a)
-                # q_table[old_state][action] = float(np.dot(w_t, list(features.values())))
-                max_action = max(q_table[gameState])
-                q_table[old_state][action] += alpha*((r + gamma*max_action) - q_table[old_state][action])
-                # env.render()
-                if done:
-                    break
-            # save to csv file for graph
-            writer.writerow([str(j), str(info['episode']['r'])])
-            print([str(j), str(info['episode']['r'])])
-    writeFile.close()
+            max_action = max(q_table[gameState])
+            q_table[old_state][action] += alpha*((r + gamma*max_action) - q_table[old_state][action])
+            # env.render()
+            if done:
+                break
+        # save to csv file for graph
+        episodes.append(j)
+        rewards.append(info['episode']['r'])
+        print([str(j), str(info['episode']['r'])])
+    # moving average
+    weights = np.repeat(1.0, 100)/100
+    moving_avg = np.convolve(rewards, weights, 'valid')
+    equalized_len = len(episodes) - len(moving_avg)
+    x = episodes[equalized_len:]
+    y = moving_avg
+    # scatter plots
+    plot.scatter(x, y, marker='*')
+    # line of best fit
+    z = np.polyfit(x, y, 1)
+    p = np.poly1d(z)
+    plot.plot(x, p(x), 'm-')
+    # axis labels and title
+    plot.xlabel('Episodes')
+    plot.ylabel('Reward')
+    plot.title('5k Runs')
+    # save figure as png
+    plot.savefig("5k_run.png")
     env.close()
 
 
