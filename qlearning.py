@@ -31,34 +31,21 @@ epsilon = 0.3   # high epsilon values = more randomness
 ###################################################
 #        State and Learning Rate Setup            #
 ###################################################
-state = defaultdict()
-state["pacman"] = {"x": 0, "y": 0, "dir": "NORTH"}
-state["ghost"] = defaultdict(lambda: {"x": 0, "y": 0, "dir": 0})
-state["pellets"] = defaultdict(lambda: {"x": 0, "y": 0})
-state["ghost_edible"] = False
-state["num_edible_ghosts"] = 0
-state["pellets_left"] = 0
-state["power_pellets_timer"] = 0
-state["power_pellets_left"] = 0
+# 1-4: iff taking this action will cause an illegal action {0,1}
+# 5-8: if there is a ghost within 8 spaces following us in this direction {0, 1}
+# 9: direction to nearest pellet/power pellet/scared ghost {0, len(map_height) || len(map_width)}
+# 10: If we cannot move in any direction without dying {0, 1}
+state = {"ill_n": 0, "ill_e": 0, "ill_s": 0, "ill_w": 0,
+         "n_ghost": 0, "e_ghost": 0, "s_ghost": 0, "w_ghost": 0,
+         "dir_pellet": 0, "trapped": 0}
 
 
 # TODO: need to fix this
 ###################################################
 #                 Update States                   #
 ###################################################
-def update_states():
-    # update pacman's info
-    state['pacman'] = {"x": info['curr_loc'][0],
-                       "y": info['curr_loc'][1],
-                       "dir": info['curr_orientation']}
-
-    # update the ghost's positions
-    for num in range(len(info['ghost_positions'])):
-        state['ghost'][num] = {"x": info['ghost_positions'][num][0],
-                               "y": info['ghost_positions'][num][1]}
-
-    # update info about the pellets
-    state['pellets_left'] = info['num_food']
+def update_states(gameInfo):
+    pass
 
 
 ###################################################

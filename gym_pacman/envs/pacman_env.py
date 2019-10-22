@@ -177,7 +177,7 @@ class PacmanEnv(gym.Env):
         self.cum_reward += reward
         # reward shaping for illegal actions
         if illegal_action:
-            reward -= 10
+            reward -= 100
 
         done = self.game.state.isWin() or self.game.state.isLose()
 
