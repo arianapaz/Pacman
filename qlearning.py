@@ -55,8 +55,6 @@ def update_states():
     state['pellets_left'] = info['num_food']
 
 
-
-
 ###################################################
 #                     Main                        #
 ###################################################
@@ -93,24 +91,29 @@ if __name__ == '__main__':
         episodes.append(j)
         rewards.append(info['episode']['r'])
         print([str(j), str(info['episode']['r'])])
+
     # moving average
     weights = np.repeat(1.0, 100)/100
     moving_avg = np.convolve(rewards, weights, 'valid')
     equalized_len = len(episodes) - len(moving_avg)
     x = episodes[equalized_len:]
     y = moving_avg
+
     # scatter plots
     plot.scatter(x, y, marker='*')
+
     # line of best fit
     z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
     plot.plot(x, p(x), 'm-')
+
     # axis labels and title
     plot.xlabel('Episodes')
     plot.ylabel('Reward')
     plot.title('5k Runs')
+
     # save figure as png
-    plot.savefig("5k_run.png")
+    plot.savefig("plots_and_data/5k_run.png")
     env.close()
 
 
