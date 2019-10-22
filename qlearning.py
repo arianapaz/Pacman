@@ -33,18 +33,17 @@ epsilon = 0.3   # high epsilon values = more randomness
 # 5-8: if there is a ghost within 8 spaces following us in this direction {0, 1}
 # 9: direction to nearest pellet/power pellet/scared ghost {0, len(map_height) || len(map_width)}
 # 10: If we cannot move in any direction without dying {0, 1}
-state = {"ill_n": 0, "ill_e": 0, "ill_s": 0, "ill_w": 0,
-         "n_ghost": 0, "e_ghost": 0, "s_ghost": 0, "w_ghost": 0,
-         "dir_pellet": 0, "trapped": 0}
+state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
+         "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
+         "nearest_pellet": 0, "trapped": 0}
 
 
 # TODO: need to fix this
 ###################################################
 #                 Update States                   #
 ###################################################
-def update_states(gameInfo):
-    pass
-
+def update_states(info):
+    # state['ill_n'] = info['']
 
 ###################################################
 #              Save Weighted Graph                #
