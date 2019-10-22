@@ -4,8 +4,6 @@ import matplotlib.pyplot as plot
 from collections import defaultdict
 import gym_pacman.envs.util as util
 
-# based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
-
 
 ###################################################
 #              Environment Setup                  #
@@ -15,7 +13,7 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 2000
+n_episodes = 10000
 n_steps = 100
 rewards = []
 
@@ -24,7 +22,7 @@ q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
 
 # Default values for learning algorithms
 alpha = 0.05    # smaller learning rates are better, more accurate over time
-gamma = 0.7     # high values give bigger weight to rewards
+gamma = 0.9     # high values give bigger weight to rewards
 epsilon = 0.3   # high epsilon values = more randomness
 
 
