@@ -194,7 +194,7 @@ class PacmanEnv(gym.Env):
              for g in self.ghostLocations])
         self.step_counter += 1
         info = {
-            'illegal_action': self.game.state.getLegalPacmanActions,
+            'legal_actions': legal_actions,
             'power_pellets_locations': self.game.state.getCapsules(),
             'food_location': self.game.state.getFood(),
             'past_loc': self.location_history[-2],
