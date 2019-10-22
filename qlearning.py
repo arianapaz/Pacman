@@ -120,13 +120,13 @@ def learn(s, s_prime, r, a):
 if __name__ == '__main__':
     for episode in range(n_episodes):
         state = env.reset("smallClassic.lay")
-        action = policy(state)
 
         for i in range(n_steps):
             # env.render()
+            
+            action = policy(state)
             state_prime, reward, done, info = env.step(action)
             learn(state, state_prime, reward, action)
-
             state = state_prime
 
             if done:
