@@ -100,7 +100,7 @@ if __name__ == '__main__':
                 break
 
         rewards.append(info['episode']['r'])
-        print([str(episode), str(reward)])
+        print([str(episode), str(info['episode']['r'])])
 
     moving_avg_graph(str(n_episodes)+'K SARSA',
                      str(n_episodes)+'K_sarsa.svg')
