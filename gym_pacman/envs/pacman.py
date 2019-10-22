@@ -350,6 +350,8 @@ class PacmanRules:
         if manhattanDistance( nearest, next ) <= 0.5 :
             # Remove food
             PacmanRules.consume( nearest, state )
+        else:
+            state.data.scoreChange -= 5
     applyAction = staticmethod( applyAction )
 
     def consume( position, state ):
@@ -369,6 +371,7 @@ class PacmanRules:
         if( position in state.getCapsules() ):
             state.data.capsules.remove( position )
             state.data._capsuleEaten = position
+            state.data.scoreChange += 15
             # Reset all ghosts' scared timers
             for index in range( 1, len( state.data.agentStates ) ):
                 state.data.agentStates[index].scaredTimer = SCARED_TIME
@@ -429,7 +432,7 @@ class GhostRules:
 
     def collide( state, ghostState, agentIndex):
         if ghostState.scaredTimer > 0:
-            state.data.scoreChange += 200
+            state.data.scoreChange += 100
             GhostRules.placeGhost(state, ghostState)
             ghostState.scaredTimer = 0
             # Added for first-person
