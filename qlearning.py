@@ -4,7 +4,7 @@ import matplotlib.pyplot as plot
 from collections import defaultdict
 import gym_pacman.envs.util as util
 
-# TODO: based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
+# based on this algorithm http://www.cse.unsw.edu.au/~cs9417ml/RL1/algorithms.html
 
 
 ###################################################
@@ -15,7 +15,7 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 5000
+n_episodes = 2000
 n_steps = 100
 rewards = []
 
@@ -88,7 +88,7 @@ def moving_avg_graph(title, file_name):
     plot.title(title)
 
     # save figure as png
-    plot.savefig("plots_and_data/"+file_name)
+    plot.savefig("plots_and_data/"+file_name, dpi=1200)
 
 
 ###################################################
@@ -136,5 +136,5 @@ if __name__ == '__main__':
         print([str(episode), str(info['episode']['r'])])
 
     moving_avg_graph(str(n_episodes)+'K Q-learning',
-                     str(n_episodes)+'K_q_learning')
+                     str(n_episodes)+'K_q_learning.svg')
     env.close()
