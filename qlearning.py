@@ -42,8 +42,15 @@ state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_wes
 ###################################################
 #                 Update States                   #
 ###################################################
-def update_states(info):
-    # state['ill_n'] = info['']
+def update_states(game_info):
+    # update the illegal actions
+    state['illegal_north'] = 'North' not in game_info['legal_actions']
+    state['illegal_east'] = 'East' not in game_info['legal_actions']
+    state['illegal_south'] = 'South' not in game_info['legal_actions']
+    state['illegal_west'] = 'West' not in game_info['legal_actions']
+
+    # update the ghost locations
+
 
 ###################################################
 #              Save Weighted Graph                #
