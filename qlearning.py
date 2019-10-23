@@ -88,6 +88,11 @@ def update_states(game_info):
             state['ghost_south'] = 0
             state['ghost_west'] = 0
 
+    # update trapped situation
+    if game_info['illegal_north'] and game_info['illegal_south'] and \
+       game_info['illegal_east'] and game_info['illegal_west']:
+        state['trapped'] = 1
+
 
 ###################################################
 #               No Walls                          #
