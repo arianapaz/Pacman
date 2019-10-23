@@ -159,7 +159,7 @@ def closest_food(pos, food, walls, capsules, ghost_locations=None):
         for nbr_x, nbr_y in neighbors:
             fringe.append((nbr_x, nbr_y, dist+1))
     # no food found
-    return None
+    return -1
 
 
 ###################################################
