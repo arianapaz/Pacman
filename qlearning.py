@@ -107,8 +107,8 @@ def no_walls(wall, fixde_index, bound1, bound2, is_row):
         return True
 
     else:
-        for col in np.arange(low, high + 1.):
-            if wall[fixde_index][col]:
+        for row in np.arange(low, high + 1.):
+            if wall[row][fixde_index]:
                 return False
         return True
 
