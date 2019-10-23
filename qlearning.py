@@ -38,7 +38,7 @@ state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_wes
          "nearest_pellet": 0, "trapped": 0}
 
 
-# TODO: need to fix this
+# TODO: currently working on this
 ###################################################
 #                 Update States                   #
 ###################################################
@@ -134,7 +134,6 @@ def policy(s):
 #                Q-learning                       #
 ###################################################
 def learn(s, s_prime, r, a):
-    # TODO: this doesnt work with state as a default dict
     max_action = max(q_table[s_prime])
     current = q_table[s][a]
     estimate = r + gamma * max_action
