@@ -88,6 +88,11 @@ def update_states(game_info):
             state['ghost_south'] = 0
             state['ghost_west'] = 0
 
+    # update direction of nearest pellet/power-pellet/eatable-ghost
+    # TODO: get the scared counter
+    # TODO: make a method like "no_walls" that gets the closest food
+    # TODO: add if statements to determine the direction
+
     # update trapped situation
     if game_info['illegal_north'] and game_info['illegal_south'] and \
        game_info['illegal_east'] and game_info['illegal_west']:
