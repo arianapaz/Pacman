@@ -147,17 +147,16 @@ class PacmanEnv(gym.Env):
         if self.step_counter >= MAX_EP_LENGTH or self.done:
             self.step_counter += 1
             return np.zeros(self.observation_space.shape), 0.0, True, {
-                'past_loc': [self.location_history[-2]],
-                'curr_loc': [self.location_history[-1]],
-                'past_orientation': [[self.orientation_history[-2]]],
-                'curr_orientation': [[self.orientation_history[-1]]],
-                'illegal_move_counter': [self.illegal_move_counter],
-                'step_counter': [[self.step_counter]],
-                'num_food': self.game.state.getNumFood(),
-                'ghost_positions': [self.ghostLocations],
+                'scared_timer': self.game.state.getGhostState(1).scaredTimer,
+                'legal_actions': None,
+                'wall_positions': self.game.state.getWalls(),
+                'power_pellets_locations': self.game.state.getCapsules(),
+                'food_location': self.game.state.getFood(),
+                'curr_loc': self.location_history[-1],
+                'curr_orientation': self.orientation_history[-1],
+                'ghost_positions': self.ghostLocations,
                 'r': [self.cum_reward],
                 'l': [self.step_counter],
-                'ghost_in_frame': [self.ghostInFrame],
                 'episode': [{
                     'r': self.cum_reward,
                     'l': self.step_counter
@@ -194,20 +193,15 @@ class PacmanEnv(gym.Env):
              for g in self.ghostLocations])
         self.step_counter += 1
         info = {
-            'is_scared': self.game.state.getGhostState(1).scaredTimer > 0,
+            'scared_timer': self.game.state.getGhostState(1).scaredTimer,
             'legal_actions': legal_actions,
             'wall_positions': self.game.state.getWalls(),
             'power_pellets_locations': self.game.state.getCapsules(),
             'food_location': self.game.state.getFood(),
-            'past_loc': self.location_history[-2],
             'curr_loc': self.location_history[-1],
-            'past_orientation': self.orientation_history[-2],
             'curr_orientation': self.orientation_history[-1],
-            'illegal_move_counter': self.illegal_move_counter,
-            'step_counter': self.step_counter,
             'episode': None,
             'ghost_positions': self.ghostLocations,
-            'ghost_in_frame': self.ghostInFrame,
         }
 
         if self.step_counter >= MAX_EP_LENGTH:
