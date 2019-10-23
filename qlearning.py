@@ -92,7 +92,7 @@ def update_states(game_info):
 ###################################################
 #               No Walls                          #
 ###################################################
-def no_walls(wall, fixde_index, bound1, bound2, is_row):
+def no_walls(wall, index, bound1, bound2, is_row):
     if bound1 > bound2:
         low = bound2
         high = bound1
@@ -102,13 +102,13 @@ def no_walls(wall, fixde_index, bound1, bound2, is_row):
 
     if is_row:
         for col in np.arange(low, high + 1.):
-            if wall[fixde_index][col]:
+            if wall[index][col]:
                 return False
         return True
 
     else:
         for row in np.arange(low, high + 1.):
-            if wall[row][fixde_index]:
+            if wall[row][index]:
                 return False
         return True
 
