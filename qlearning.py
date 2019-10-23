@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+from gym_pacman.envs.game import Actions
 import matplotlib.pyplot as plot
 from collections import defaultdict
 import gym_pacman.envs.util as util
@@ -43,6 +44,14 @@ state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_wes
 #                 Update States                   #
 ###################################################
 def update_states(game_info):
+    # info needed
+    pacman = [float(game_info['curr_loc'][0]), float(game_info['curr_loc'][1])]
+    food = game_info['food_location']
+    walls = game_info['wall_positions']
+    capsules = game_info['power_pellets_locations']
+    ghost_positions = game_info['ghost_positions']
+    scared_timer = game_info['scared_timer']
+
     # update the illegal actions
     state['illegal_north'] = 'North' not in game_info['legal_actions']
     state['illegal_east'] = 'East' not in game_info['legal_actions']
@@ -50,10 +59,7 @@ def update_states(game_info):
     state['illegal_west'] = 'West' not in game_info['legal_actions']
 
     # update the ghost threats
-    pacman = [float(state['curr_loc'][0]), float(state['curr_loc'][1])]
-    walls = info['wall_positions']
-
-    for ghost in state['ghost_positions']:
+    for ghost in ghost_positions:
         if abs(pacman[0]-ghost[0]) <= 4 or abs(pacman[1]-ghost[1]) <= 4:
             if pacman[0] == ghost[0]:
                 if no_walls(walls, pacman[0], pacman[1], ghost[1], True):
@@ -89,13 +95,17 @@ def update_states(game_info):
             state['ghost_west'] = 0
 
     # update direction of nearest pellet/power-pellet/eatable-ghost
-    # TODO: get the scared counter
     # TODO: make a method like "no_walls" that gets the closest food
     # TODO: add if statements to determine the direction
+    if scared_timer > 10:
+        state['nearest_pellet'] = closest_food(pacman, food, walls, capsules, ghost_positions)
+    else:
+        state['nearest_pellet'] = closest_food(pacman, food, walls, capsules)
 
     # update trapped situation
-    if game_info['illegal_north'] and game_info['illegal_south'] and \
-       game_info['illegal_east'] and game_info['illegal_west']:
+    # TODO: need check if there is a ghost or wall on every side
+    if state['illegal_north'] and state['illegal_south'] and \
+       state['illegal_east'] and state['illegal_west']:
         state['trapped'] = 1
 
 
@@ -121,6 +131,35 @@ def no_walls(wall, index, bound1, bound2, is_row):
             if wall[row][index]:
                 return False
         return True
+
+
+###################################################
+#       Nearest Food/Capsules/Ghost               #
+###################################################
+def closest_food(pos, food, walls, capsules, ghost_locations=None):
+    fringe = [(pos[0], pos[1], 0)]
+    expanded = set()
+    while fringe:
+        pos_x, pos_y, dist = fringe.pop(0)
+        if (pos_x, pos_y) in expanded:
+            continue
+        expanded.add((pos_x, pos_y))
+        # if we find a food at this location then exit
+        for capsule in capsules:
+            if float(capsule[0]) == pos_x and float(capsule[1]) == pos_y:
+                return dist
+        if ghost_locations is not None:
+            for ghost in ghost_locations:
+                if ghost[0] == pos_x and ghost[1] == pos_y:
+                    return dist
+        if food[pos_x][pos_y]:
+            return dist
+        # otherwise spread out from the location to its neighbours
+        neighbors = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+        for nbr_x, nbr_y in neighbors:
+            fringe.append((nbr_x, nbr_y, dist+1))
+    # no food found
+    return None
 
 
 ###################################################
