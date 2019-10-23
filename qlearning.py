@@ -5,7 +5,6 @@ import matplotlib.pyplot as plot
 from collections import defaultdict
 import gym_pacman.envs.util as util
 
-
 ###################################################
 #              Environment Setup                  #
 ###################################################
@@ -14,7 +13,7 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 10000
+n_episodes = 15000
 n_steps = 100
 rewards = []
 
@@ -22,28 +21,27 @@ rewards = []
 q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
 
 # Default values for learning algorithms
-alpha = 0.05    # smaller learning rates are better, more accurate over time
-gamma = 0.9     # high values give bigger weight to rewards
-epsilon = 0.3   # high epsilon values = more randomness
-
+alpha = 0.05  # smaller learning rates are better, more accurate over time
+gamma = 0.9  # high values give bigger weight to rewards
+epsilon = 0.3  # high epsilon values = more randomness
 
 ###################################################
 #        State and Learning Rate Setup            #
 ###################################################
 # 1-4: iff taking this action will cause an illegal action {0,1}
 # 5-8: if there is a ghost within 8 spaces following us in this direction {0, 1}
-# 9: direction to nearest pellet/power pellet/scared ghost {0, len(map_height) || len(map_width)}
+# 9: distance to nearest pellet/power pellet/scared ghost {0, len(map_height) || len(map_width)}
 # 10: If we cannot move in any direction without dying {0, 1}
-state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
-         "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
-         "nearest_pellet": 0, "trapped": 0}
+initial_state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
+                 "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
+                 "nearest_pellet": 0, "trapped": 0}
 
 
 # TODO: currently working on this
 ###################################################
 #                 Update States                   #
 ###################################################
-def update_states(game_info):
+def update_states(copy_state, game_info):
     # info needed
     pacman = [float(game_info['curr_loc'][0]), float(game_info['curr_loc'][1])]
     food = game_info['food_location']
@@ -51,62 +49,67 @@ def update_states(game_info):
     capsules = game_info['power_pellets_locations']
     ghost_positions = game_info['ghost_positions']
     scared_timer = game_info['scared_timer']
+    obstacle = {"north": False, "east": False, "south": False, "west": False}
 
     # update the illegal actions
-    state['illegal_north'] = 'North' not in game_info['legal_actions']
-    state['illegal_east'] = 'East' not in game_info['legal_actions']
-    state['illegal_south'] = 'South' not in game_info['legal_actions']
-    state['illegal_west'] = 'West' not in game_info['legal_actions']
+    copy_state['illegal_north'] = int('North' not in game_info['legal_actions'])
+    copy_state['illegal_east'] = int('East' not in game_info['legal_actions'])
+    copy_state['illegal_south'] = int('South' not in game_info['legal_actions'])
+    copy_state['illegal_west'] = int('West' not in game_info['legal_actions'])
 
     # update the ghost threats
     for ghost in ghost_positions:
-        if abs(pacman[0]-ghost[0]) <= 4 or abs(pacman[1]-ghost[1]) <= 4:
+        if abs(pacman[0] - ghost[0]) <= 4 or abs(pacman[1] - ghost[1]) <= 4:
             if pacman[0] == ghost[0]:
-                if no_walls(walls, pacman[0], pacman[1], ghost[1], True):
-                    state['ghost_north'] = pacman[1] < ghost[1]
-                    state['ghost_south'] = pacman[1] > ghost[1]
-                    state['ghost_east'] = 0
-                    state['ghost_west'] = 0
+                if no_walls(walls, int(pacman[0]), pacman[1], ghost[1], True):
+                    copy_state['ghost_north'] = int(pacman[1] < ghost[1])
+                    copy_state['ghost_south'] = int(pacman[1] > ghost[1])
+                    copy_state['ghost_east'] = 0
+                    copy_state['ghost_west'] = 0
                 else:
-                    state['ghost_north'] = 0
-                    state['ghost_east'] = 0
-                    state['ghost_south'] = 0
-                    state['ghost_west'] = 0
+                    copy_state['ghost_north'] = 0
+                    copy_state['ghost_east'] = 0
+                    copy_state['ghost_south'] = 0
+                    copy_state['ghost_west'] = 0
             elif pacman[1] == ghost[1]:
-                if no_walls(walls, pacman[1], pacman[0], ghost[0], False):
-                    state['ghost_east'] = pacman[0] < ghost[0]
-                    state['ghost_west'] = pacman[0] > ghost[0]
-                    state['ghost_north'] = 0
-                    state['ghost_south'] = 0
+                if no_walls(walls, int(pacman[1]), pacman[0], ghost[0], False):
+                    copy_state['ghost_east'] = int(pacman[0] < ghost[0])
+                    copy_state['ghost_west'] = int(pacman[0] > ghost[0])
+                    copy_state['ghost_north'] = 0
+                    copy_state['ghost_south'] = 0
                 else:
-                    state['ghost_north'] = 0
-                    state['ghost_east'] = 0
-                    state['ghost_south'] = 0
-                    state['ghost_west'] = 0
+                    copy_state['ghost_north'] = 0
+                    copy_state['ghost_east'] = 0
+                    copy_state['ghost_south'] = 0
+                    copy_state['ghost_west'] = 0
             else:
-                state['ghost_north'] = 0
-                state['ghost_east'] = 0
-                state['ghost_south'] = 0
-                state['ghost_west'] = 0
+                copy_state['ghost_north'] = 0
+                copy_state['ghost_east'] = 0
+                copy_state['ghost_south'] = 0
+                copy_state['ghost_west'] = 0
         else:
-            state['ghost_north'] = 0
-            state['ghost_east'] = 0
-            state['ghost_south'] = 0
-            state['ghost_west'] = 0
+            copy_state['ghost_north'] = 0
+            copy_state['ghost_east'] = 0
+            copy_state['ghost_south'] = 0
+            copy_state['ghost_west'] = 0
 
-    # update direction of nearest pellet/power-pellet/eatable-ghost
-    # TODO: make a method like "no_walls" that gets the closest food
-    # TODO: add if statements to determine the direction
+    # update the closest food/scared ghost/capsule
     if scared_timer > 10:
-        state['nearest_pellet'] = closest_food(pacman, food, walls, capsules, ghost_positions)
+        copy_state['nearest_pellet'] = closest_food(pacman, food, walls, capsules, ghost_positions)
     else:
-        state['nearest_pellet'] = closest_food(pacman, food, walls, capsules)
+        copy_state['nearest_pellet'] = closest_food(pacman, food, walls, capsules)
 
     # update trapped situation
-    # TODO: need check if there is a ghost or wall on every side
-    if state['illegal_north'] and state['illegal_south'] and \
-       state['illegal_east'] and state['illegal_west']:
-        state['trapped'] = 1
+    obstacle["north"] = ((copy_state["illegal_north"] or copy_state["ghost_north"]) > 0)
+    obstacle["south"] = ((copy_state["illegal_south"] or copy_state["ghost_south"]) > 0)
+    obstacle["east"] = ((copy_state["illegal_east"] or copy_state["ghost_east"]) > 0)
+    obstacle["west"] = ((copy_state["illegal_west"] or copy_state["ghost_west"]) > 0)
+
+    if obstacle["south"] and obstacle["north"] and obstacle["west"] and obstacle["east"]:
+        copy_state['trapped'] = 1
+    else:
+        copy_state['trapped'] = 0
+    return copy_state
 
 
 ###################################################
@@ -121,13 +124,13 @@ def no_walls(wall, index, bound1, bound2, is_row):
         high = bound2
 
     if is_row:
-        for col in np.arange(low, high + 1.):
+        for col in np.arange(int(low), int(high) + 1):
             if wall[index][col]:
                 return False
         return True
 
     else:
-        for row in np.arange(low, high + 1.):
+        for row in np.arange(int(low), int(high) + 1):
             if wall[row][index]:
                 return False
         return True
@@ -137,7 +140,7 @@ def no_walls(wall, index, bound1, bound2, is_row):
 #       Nearest Food/Capsules/Ghost               #
 ###################################################
 def closest_food(pos, food, walls, capsules, ghost_locations=None):
-    fringe = [(pos[0], pos[1], 0)]
+    fringe = [(int(pos[0]), int(pos[1]), 0)]
     expanded = set()
     while fringe:
         pos_x, pos_y, dist = fringe.pop(0)
@@ -157,7 +160,7 @@ def closest_food(pos, food, walls, capsules, ghost_locations=None):
         # otherwise spread out from the location to its neighbours
         neighbors = Actions.getLegalNeighbors((pos_x, pos_y), walls)
         for nbr_x, nbr_y in neighbors:
-            fringe.append((nbr_x, nbr_y, dist+1))
+            fringe.append((nbr_x, nbr_y, dist + 1))
     # no food found
     return -1
 
@@ -189,7 +192,7 @@ def learn(s, s_prime, r, a):
 ###################################################
 def moving_avg_graph(title, file_name):
     # calculate weights
-    weights = np.repeat(1.0, 100)/100
+    weights = np.repeat(1.0, 100) / 100
     moving_avg = np.convolve(rewards, weights, 'valid')
     equalized_len = n_episodes - len(moving_avg)
 
@@ -200,18 +203,13 @@ def moving_avg_graph(title, file_name):
     # scatter plot
     plot.scatter(x, y, marker='.')
 
-    # line of best fit
-    z = np.polyfit(x, y, 1)
-    p = np.poly1d(z)
-    plot.plot(x, p(x), 'm-')
-
     # axis labels and title
     plot.xlabel('Episodes')
     plot.ylabel('Reward')
     plot.title(title)
 
     # save figure as png
-    plot.savefig("plots_and_data/"+file_name, dpi=1200)
+    plot.savefig("plots_and_data/" + file_name, dpi=1200)
 
 
 ###################################################
@@ -219,15 +217,24 @@ def moving_avg_graph(title, file_name):
 ###################################################
 if __name__ == '__main__':
     for episode in range(n_episodes):
-        state = env.reset("smallClassic.lay")
+        env.reset("smallClassic.lay")
+        # getting initial state and its dictionary key value
+        state = initial_state
+        state_key = int("".join(map(str, state.values())))
 
         for i in range(n_steps):
             # env.render()
-            
-            action = policy(state)
-            state_prime, reward, done, info = env.step(action)
-            learn(state, state_prime, reward, action)
+
+            action = policy(state_key)
+            game_state, reward, done, info = env.step(action)
+
+            state_prime = update_states(state, info)
+            state_prime_key = int("".join(map(str, state_prime.values())))
+
+            learn(state_key, state_prime_key, reward, action)
+
             state = state_prime
+            state_key = state_prime_key
 
             if done:
                 break
@@ -235,6 +242,6 @@ if __name__ == '__main__':
         rewards.append(info['episode']['r'])
         print([str(episode), str(info['episode']['r'])])
 
-    moving_avg_graph(str(n_episodes)+'K Q-learning',
-                     str(n_episodes)+'K_q_learning.svg')
+    moving_avg_graph(str(n_episodes) + 'K Q-learning',
+                     str(n_episodes) + 'K_q_learning.svg')
     env.close()

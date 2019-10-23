@@ -42,11 +42,6 @@ def moving_avg_graph(title, file_name):
     # scatter plot
     plot.scatter(x, y, marker='.')
 
-    # line of best fit
-    z = np.polyfit(x, y, 1)
-    p = np.poly1d(z)
-    plot.plot(x, p(x), 'm-')
-
     # axis labels and title
     plot.xlabel('Episodes')
     plot.ylabel('Reward')
