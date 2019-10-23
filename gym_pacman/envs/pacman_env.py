@@ -194,6 +194,7 @@ class PacmanEnv(gym.Env):
              for g in self.ghostLocations])
         self.step_counter += 1
         info = {
+            'is_scared': self.game.state.getGhostState(1).scaredTimer > 0,
             'legal_actions': legal_actions,
             'wall_positions': self.game.state.getWalls(),
             'power_pellets_locations': self.game.state.getCapsules(),
