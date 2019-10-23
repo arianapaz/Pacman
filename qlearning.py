@@ -49,7 +49,91 @@ def update_states(game_info):
     state['illegal_south'] = 'South' not in game_info['legal_actions']
     state['illegal_west'] = 'West' not in game_info['legal_actions']
 
-    # update the ghost locations
+    # update the ghost threats
+    pacman = [float(state['curr_loc'][0]), float(state['curr_loc'][1])]
+    walls = info['wall_positions']
+
+    for ghost in state['ghost_positions']:
+        if abs(pacman[0]-ghost[0]) <= 4 or abs(pacman[1]-ghost[1]) <= 4:
+            if pacman[0] == ghost[0]:
+                if no_walls(walls, pacman[0], pacman[1], ghost[1], True):
+                    state['ghost_north'] = pacman[1] < ghost[1]
+                    state['ghost_south'] = pacman[1] > ghost[1]
+                    state['ghost_east'] = 0
+                    state['ghost_west'] = 0
+                else:
+                    state['ghost_north'] = 0
+                    state['ghost_east'] = 0
+                    state['ghost_south'] = 0
+                    state['ghost_west'] = 0
+            elif pacman[1] == ghost[1]:
+                if no_walls(walls, pacman[1], pacman[0], ghost[0], False):
+                    state['ghost_east'] = pacman[0] < ghost[0]
+                    state['ghost_west'] = pacman[0] > ghost[0]
+                    state['ghost_north'] = 0
+                    state['ghost_south'] = 0
+                else:
+                    state['ghost_north'] = 0
+                    state['ghost_east'] = 0
+                    state['ghost_south'] = 0
+                    state['ghost_west'] = 0
+            else:
+                state['ghost_north'] = 0
+                state['ghost_east'] = 0
+                state['ghost_south'] = 0
+                state['ghost_west'] = 0
+        else:
+            state['ghost_north'] = 0
+            state['ghost_east'] = 0
+            state['ghost_south'] = 0
+            state['ghost_west'] = 0
+
+
+###################################################
+#               No Walls                          #
+###################################################
+def no_walls(wall, fixde_index, bound1, bound2, is_row):
+    if bound1 > bound2:
+        low = bound2
+        high = bound1
+    else:
+        low = bound1
+        high = bound2
+
+    if is_row:
+        for col in np.arange(low, high + 1.):
+            if wall[fixde_index][col]:
+                return False
+        return True
+
+    else:
+        for col in np.arange(low, high + 1.):
+            if wall[fixde_index][col]:
+                return False
+        return True
+
+
+###################################################
+#               E Greedy                          #
+###################################################
+def policy(s):
+    if np.random.uniform(0, 1) < epsilon:
+        new_action = env.action_space.sample()
+    else:
+        new_action = np.argmax(q_table[s])
+
+    return new_action
+
+
+###################################################
+#                Q-learning                       #
+###################################################
+def learn(s, s_prime, r, a):
+    # TODO: this doesnt work with state as a default dict
+    max_action = max(q_table[s_prime])
+    current = q_table[s][a]
+    estimate = r + gamma * max_action
+    q_table[s][a] = current + alpha * (estimate - current)
 
 
 ###################################################
@@ -80,29 +164,6 @@ def moving_avg_graph(title, file_name):
 
     # save figure as png
     plot.savefig("plots_and_data/"+file_name, dpi=1200)
-
-
-###################################################
-#               E Greedy                          #
-###################################################
-def policy(s):
-    if np.random.uniform(0, 1) < epsilon:
-        new_action = env.action_space.sample()
-    else:
-        new_action = np.argmax(q_table[s])
-
-    return new_action
-
-
-###################################################
-#                Q-learning                       #
-###################################################
-def learn(s, s_prime, r, a):
-    # TODO: this doesnt work with state as a default dict
-    max_action = max(q_table[s_prime])
-    current = q_table[s][a]
-    estimate = r + gamma * max_action
-    q_table[s][a] = current + alpha * (estimate - current)
 
 
 ###################################################
