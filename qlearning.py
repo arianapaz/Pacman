@@ -1,7 +1,7 @@
 import gym
 import numpy as np
-from gym_pacman.envs.game import Actions
 import matplotlib.pyplot as plot
+from gym_pacman.envs.game import Actions
 from collections import defaultdict
 import gym_pacman.envs.util as util
 
@@ -13,7 +13,7 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 15000
+n_episodes = 13000
 n_steps = 100
 rewards = []
 
@@ -139,9 +139,11 @@ def no_walls(wall, index, bound1, bound2, is_row):
 ###################################################
 #       Nearest Food/Capsules/Ghost               #
 ###################################################
-def closest_food(pos, food, walls, capsules, ghost_locations=None):
-    fringe = [(int(pos[0]), int(pos[1]), 0)]
+def closest_food(pacman, food, walls, capsules, ghost_locations=None):
+    fringe = [(int(pacman[0]), int(pacman[1]), 0)]
     expanded = set()
+    direction_found = 4
+
     while fringe:
         pos_x, pos_y, dist = fringe.pop(0)
         if (pos_x, pos_y) in expanded:
@@ -150,19 +152,50 @@ def closest_food(pos, food, walls, capsules, ghost_locations=None):
         # if we find a food at this location then exit
         for capsule in capsules:
             if float(capsule[0]) == pos_x and float(capsule[1]) == pos_y:
-                return dist
+                if int(pacman[0]) == pos_x:
+                    if int(pacman[1]) < pos_y:
+                        direction_found = 0
+                    else:
+                        direction_found = 2
+                elif int(pacman[1]) == pos_y:
+                    if int(pacman[0]) < pos_x:
+                        direction_found = 1
+                    else:
+                        direction_found = 3
+                break
         if ghost_locations is not None:
             for ghost in ghost_locations:
                 if ghost[0] == pos_x and ghost[1] == pos_y:
-                    return dist
+                    if float(ghost[0]) == pos_x and float(ghost[1]) == pos_y:
+                        if int(pacman[0]) == pos_x:
+                            if int(pacman[1]) < pos_y:
+                                direction_found = 0
+                            else:
+                                direction_found = 2
+                        elif int(pacman[1]) == pos_y:
+                            if int(pacman[0]) < pos_x:
+                                direction_found = 1
+                            else:
+                                direction_found = 3
+                    break
         if food[pos_x][pos_y]:
-            return dist
+            if int(pacman[0]) == pos_x:
+                if int(pacman[1]) < pos_y:
+                    direction_found = 0
+                else:
+                    direction_found = 2
+            elif int(pacman[1]) == pos_y:
+                if int(pacman[0]) < pos_x:
+                    direction_found = 1
+                else:
+                    direction_found = 3
+            break
         # otherwise spread out from the location to its neighbours
         neighbors = Actions.getLegalNeighbors((pos_x, pos_y), walls)
         for nbr_x, nbr_y in neighbors:
             fringe.append((nbr_x, nbr_y, dist + 1))
-    # no food found
-    return -1
+
+    return direction_found
 
 
 ###################################################
@@ -226,7 +259,7 @@ if __name__ == '__main__':
             # env.render()
 
             action = policy(state_key)
-            game_state, reward, done, info = env.step(action)
+            _, reward, done, info = env.step(action)
 
             state_prime = update_states(state, info)
             state_prime_key = int("".join(map(str, state_prime.values())))
@@ -242,6 +275,6 @@ if __name__ == '__main__':
         rewards.append(info['episode']['r'])
         print([str(episode), str(info['episode']['r'])])
 
-    moving_avg_graph(str(n_episodes) + 'K Q-learning',
-                     str(n_episodes) + 'K_q_learning.svg')
+    moving_avg_graph(str(n_episodes) + ' Q-learning',
+                     str(n_episodes) + '_q_learning.svg')
     env.close()
