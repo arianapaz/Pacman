@@ -30,11 +30,14 @@ epsilon = 0.3  # high epsilon values = more randomness
 ###################################################
 # 1-4: iff taking this action will cause an illegal action {0,1}
 # 5-8: if there is a ghost within 8 spaces following us in this direction {0, 1}
-# 9: distance to nearest pellet/power pellet/scared ghost {0, len(map_height) || len(map_width)}
+# 9: direction of nearest pellet/power pellet/scared ghost {0, len(map_height) || len(map_width)}
 # 10: If we cannot move in any direction without dying {0, 1}
 initial_state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
                  "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
                  "nearest_pellet": 0, "trapped": 0}
+weights = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
+           "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
+           "nearest_pellet": 0, "trapped": 0}
 
 
 # TODO: currently working on this
@@ -221,6 +224,20 @@ def learn(s, s_prime, r, a):
 
 
 ###################################################
+#          Approximate Q-learning                 #
+###################################################
+def approximate_learn(s, s_key, s_prime_key, r, a):
+    max_action = max(q_table[s_prime_key])
+    current = q_table[s_key][a]
+    correction = (r + gamma * max_action) - current
+    weighted_sum = 0
+    for feature in weights:
+        weights[feature] += alpha*correction*s[feature]
+        weighted_sum += weights[feature]*s[feature]
+    q_table[s_key][a] = weighted_sum
+
+
+###################################################
 #              Save Weighted Graph                #
 ###################################################
 def moving_avg_graph(title, file_name):
@@ -264,7 +281,8 @@ if __name__ == '__main__':
             state_prime = update_states(state, info)
             state_prime_key = int("".join(map(str, state_prime.values())))
 
-            learn(state_key, state_prime_key, reward, action)
+            # learn(state_key, state_prime_key, reward, action)
+            approximate_learn(state, state_key, state_prime_key, reward, action)
 
             state = state_prime
             state_key = state_prime_key
