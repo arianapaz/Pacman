@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+import pickle
 import matplotlib.pyplot as plot
 from gym_pacman.envs.game import Actions
 from collections import defaultdict
@@ -13,12 +14,15 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 13000
+n_episodes = 500
 n_steps = 100
+graph_steps = 150
 rewards = []
 
 # dictionary that will allow us to use the action name as the key
 q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
+# q_table = {'North': 0, 'South': 0, 'East': 0, 'West': 0, 'Stop': 0}
+
 
 # Default values for learning algorithms
 alpha = 0.05  # smaller learning rates are better, more accurate over time
@@ -35,9 +39,9 @@ epsilon = 0.3  # high epsilon values = more randomness
 initial_state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
                  "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
                  "nearest_pellet": 0, "trapped": 0}
-weights = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
-           "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
-           "nearest_pellet": 0, "trapped": 0}
+# weights = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
+#            "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
+#            "nearest_pellet": 0, "trapped": 0}
 
 
 # TODO: currently working on this
@@ -226,15 +230,15 @@ def learn(s, s_prime, r, a):
 ###################################################
 #          Approximate Q-learning                 #
 ###################################################
-def approximate_learn(s, s_key, s_prime_key, r, a):
-    max_action = max(q_table[s_prime_key])
-    current = q_table[s_key][a]
-    correction = (r + gamma * max_action) - current
-    weighted_sum = 0
-    for feature in weights:
-        weights[feature] += alpha*correction*s[feature]
-        weighted_sum += weights[feature]*s[feature]
-    q_table[s_key][a] = weighted_sum
+# def approximate_learn(s, s_key, s_prime_key, r, a):
+#     max_action = max(q_table[s_prime_key])
+#     current = q_table[s_key][a]
+#     correction = (r + gamma * max_action) - current
+#     weighted_sum = 0
+#     for feature in weights:
+#         weights[feature] += alpha * correction * s[feature]
+#         weighted_sum += weights[feature] * s[feature]
+#     q_table[s_key][a] = weighted_sum
 
 
 ###################################################
@@ -242,7 +246,7 @@ def approximate_learn(s, s_key, s_prime_key, r, a):
 ###################################################
 def moving_avg_graph(title, file_name):
     # calculate weights
-    weights = np.repeat(1.0, 100) / 100
+    weights = np.repeat(1.0, graph_steps)/graph_steps
     moving_avg = np.convolve(rewards, weights, 'valid')
     equalized_len = n_episodes - len(moving_avg)
 
@@ -267,25 +271,30 @@ def moving_avg_graph(title, file_name):
 ###################################################
 if __name__ == '__main__':
     for episode in range(n_episodes):
-        env.reset("smallClassic.lay")
+        # env.reset("trappedClassic.lay")
+        state = env.reset("trappedClassic.lay")
+
         # getting initial state and its dictionary key value
-        state = initial_state
-        state_key = int("".join(map(str, state.values())))
+        # state = initial_state
+        # state_key = int("".join(map(str, state.values())))
 
         for i in range(n_steps):
             # env.render()
 
-            action = policy(state_key)
-            _, reward, done, info = env.step(action)
+            action = policy(state)
+            # action = policy(state_key)
+            # _, reward, done, info = env.step(action)
+            state_prime, reward, done, info = env.step(action)
 
-            state_prime = update_states(state, info)
-            state_prime_key = int("".join(map(str, state_prime.values())))
+            # state_prime = update_states(state, info)
+            # state_prime_key = int("".join(map(str, state_prime.values())))
 
+            learn(state, state_prime, reward, action)
             # learn(state_key, state_prime_key, reward, action)
-            approximate_learn(state, state_key, state_prime_key, reward, action)
+            # approximate_learn(state, state_key, state_prime_key, reward, action)
 
             state = state_prime
-            state_key = state_prime_key
+            # state_key = state_prime_key
 
             if done:
                 break
@@ -293,6 +302,17 @@ if __name__ == '__main__':
         rewards.append(info['episode']['r'])
         print([str(episode), str(info['episode']['r'])])
 
+    # save graph
     moving_avg_graph(str(n_episodes) + ' Q-learning',
                      str(n_episodes) + '_q_learning.svg')
+
+    # save q table
+    f = open('plots_and_data/q_table/q_table.pkl', 'wb')
+    pickle.dump(q_table, f)
+    f.close()
+
+    with open('plots_and_data/q_table/q_table.pkl', 'rb') as f:
+        x = pickle.load(f)
+    print(x)
+
     env.close()

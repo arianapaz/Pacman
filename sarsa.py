@@ -13,8 +13,9 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 10000
+n_episodes = 20000
 n_steps = 100
+graph_steps = 150
 rewards = []
 
 # dictionary that will allow us to use the action name as the key
@@ -31,7 +32,7 @@ epsilon = 0.3   # high epsilon values = more randomness
 ###################################################
 def moving_avg_graph(title, file_name):
     # calculate weights
-    weights = np.repeat(1.0, 100)/100
+    weights = np.repeat(1.0, graph_steps)/graph_steps
     moving_avg = np.convolve(rewards, weights, 'valid')
     equalized_len = n_episodes - len(moving_avg)
 
@@ -78,7 +79,7 @@ def learn(s, s_prime, r, a, a_prime):
 if __name__ == '__main__':
 
     for episode in range(n_episodes):
-        state = env.reset("smallClassic.lay")
+        state = env.reset("trappedClassic.lay")
         action = policy(state)
 
         for i in range(n_steps):
@@ -98,5 +99,5 @@ if __name__ == '__main__':
         print([str(episode), str(info['episode']['r'])])
 
     moving_avg_graph(str(n_episodes)+'K SARSA',
-                     str(n_episodes)+'K_sarsa.svg')
+                     str(n_episodes)+'_sarsa.svg')
     env.close()
