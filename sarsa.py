@@ -13,7 +13,7 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 20000
+n_episodes = 200000
 n_steps = 100
 graph_steps = 150
 rewards = []
@@ -98,6 +98,7 @@ if __name__ == '__main__':
         rewards.append(info['episode']['r'])
         print([str(episode), str(info['episode']['r'])])
 
-    moving_avg_graph(str(n_episodes)+'K SARSA',
+    moving_avg_graph(str(n_episodes)+' SARSA',
                      str(n_episodes)+'_sarsa.svg')
+
     env.close()
