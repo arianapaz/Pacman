@@ -14,20 +14,25 @@ env.seed(1)
 done = False
 
 # episodes, steps, and rewards
-n_episodes = 500
+n_episodes = 200000
 n_steps = 100
 graph_steps = 150
 rewards = []
 
 # dictionary that will allow us to use the action name as the key
 q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0])
-# q_table = {'North': 0, 'South': 0, 'East': 0, 'West': 0, 'Stop': 0}
-
 
 # Default values for learning algorithms
 alpha = 0.05  # smaller learning rates are better, more accurate over time
 gamma = 0.9  # high values give bigger weight to rewards
 epsilon = 0.3  # high epsilon values = more randomness
+
+# to help us run the desired algorithm
+using_full_state = True
+using_feature_vector = False
+using_approx_learn = False
+load_q_table = False
+save_q_table = False
 
 ###################################################
 #        State and Learning Rate Setup            #
@@ -38,18 +43,17 @@ epsilon = 0.3  # high epsilon values = more randomness
 # 10: If we cannot move in any direction without dying {0, 1}
 initial_state = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
                  "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
-                 "nearest_pellet": 0, "trapped": 0}
-# weights = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
-#            "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
-#            "nearest_pellet": 0, "trapped": 0}
+                 "nearest_pellet": 0, "distance_nearest_pellet": 0, "trapped": 0}
+weights = {"illegal_north": 0, "illegal_east": 0, "illegal_south": 0, "illegal_west": 0,
+           "ghost_north": 0, "ghost_east": 0, "ghost_south": 0, "ghost_west": 0,
+           "nearest_pellet": 0, "distance_nearest_pellet": 0, "trapped": 0}
 
 
-# TODO: currently working on this
 ###################################################
 #                 Update States                   #
 ###################################################
 def update_states(copy_state, game_info):
-    # info needed
+    # get the needed info
     pacman = [float(game_info['curr_loc'][0]), float(game_info['curr_loc'][1])]
     food = game_info['food_location']
     walls = game_info['wall_positions']
@@ -102,9 +106,11 @@ def update_states(copy_state, game_info):
 
     # update the closest food/scared ghost/capsule
     if scared_timer > 10:
-        copy_state['nearest_pellet'] = closest_food(pacman, food, walls, capsules, ghost_positions)
+        copy_state['nearest_pellet'], copy_state["distance_nearest_pellet"] = closest_food(pacman, food, walls,
+                                                                                           capsules, ghost_positions)
     else:
-        copy_state['nearest_pellet'] = closest_food(pacman, food, walls, capsules)
+        copy_state['nearest_pellet'], copy_state["distance_nearest_pellet"] = closest_food(pacman, food, walls,
+                                                                                           capsules)
 
     # update trapped situation
     obstacle["north"] = ((copy_state["illegal_north"] or copy_state["ghost_north"]) > 0)
@@ -150,7 +156,7 @@ def closest_food(pacman, food, walls, capsules, ghost_locations=None):
     fringe = [(int(pacman[0]), int(pacman[1]), 0)]
     expanded = set()
     direction_found = 4
-
+    dist = 0
     while fringe:
         pos_x, pos_y, dist = fringe.pop(0)
         if (pos_x, pos_y) in expanded:
@@ -202,7 +208,7 @@ def closest_food(pacman, food, walls, capsules, ghost_locations=None):
         for nbr_x, nbr_y in neighbors:
             fringe.append((nbr_x, nbr_y, dist + 1))
 
-    return direction_found
+    return direction_found, dist
 
 
 ###################################################
@@ -230,15 +236,15 @@ def learn(s, s_prime, r, a):
 ###################################################
 #          Approximate Q-learning                 #
 ###################################################
-# def approximate_learn(s, s_key, s_prime_key, r, a):
-#     max_action = max(q_table[s_prime_key])
-#     current = q_table[s_key][a]
-#     correction = (r + gamma * max_action) - current
-#     weighted_sum = 0
-#     for feature in weights:
-#         weights[feature] += alpha * correction * s[feature]
-#         weighted_sum += weights[feature] * s[feature]
-#     q_table[s_key][a] = weighted_sum
+def approximate_learn(features, s, s_prime, r, a):
+    max_action = max(q_table[s_prime])
+    current = q_table[s][a]
+    correction = (r + gamma * max_action) - current
+    weighted_sum = 0
+    for feature in weights:
+        weights[feature] += alpha * correction * features[feature]
+        weighted_sum += weights[feature] * features[feature]
+    q_table[s][a] = weighted_sum
 
 
 ###################################################
@@ -246,7 +252,7 @@ def learn(s, s_prime, r, a):
 ###################################################
 def moving_avg_graph(title, file_name):
     # calculate weights
-    weights = np.repeat(1.0, graph_steps)/graph_steps
+    weights = np.repeat(1.0, graph_steps) / graph_steps
     moving_avg = np.convolve(rewards, weights, 'valid')
     equalized_len = n_episodes - len(moving_avg)
 
@@ -270,35 +276,65 @@ def moving_avg_graph(title, file_name):
 #                     Main                        #
 ###################################################
 if __name__ == '__main__':
-    for episode in range(n_episodes):
-        # env.reset("trappedClassic.lay")
-        state = env.reset("trappedClassic.lay")
+    if load_q_table:
+        with open('plots_and_data/q_table/q_table_trapped.pkl', 'rb') as f:
+            saved_table = pickle.load(f)
+            q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0], saved_table)
 
-        # getting initial state and its dictionary key value
-        # state = initial_state
-        # state_key = int("".join(map(str, state.values())))
+    if using_full_state:
+        for episode in range(n_episodes):
+            state = env.reset("smallClassic.lay")
 
-        for i in range(n_steps):
-            # env.render()
+            for i in range(n_steps):
 
-            action = policy(state)
-            # action = policy(state_key)
-            # _, reward, done, info = env.step(action)
-            state_prime, reward, done, info = env.step(action)
+                action = policy(state)
+                state_prime, reward, done, info = env.step(action)
+                learn(state, state_prime, reward, action)
+                state = state_prime
 
-            # state_prime = update_states(state, info)
-            # state_prime_key = int("".join(map(str, state_prime.values())))
+                if done:
+                    break
 
-            learn(state, state_prime, reward, action)
-            # learn(state_key, state_prime_key, reward, action)
-            # approximate_learn(state, state_key, state_prime_key, reward, action)
+    if using_feature_vector:
+        for episode in range(n_episodes):
+            env.reset("trappedClassic.lay")
 
-            state = state_prime
-            # state_key = state_prime_key
+            # getting initial state and its dictionary key value
+            state = initial_state
+            state_key = int("".join(map(str, state.values())))
 
-            if done:
-                break
+            for i in range(n_steps):
 
+                action = policy(state_key)
+                _, reward, done, info = env.step(action)
+
+                state_prime = update_states(state, info)
+                state_prime_key = int("".join(map(str, state_prime.values())))
+
+                learn(state_key, state_prime_key, reward, action)
+                state_key = state_prime_key
+                state = state_prime
+
+                if done:
+                    break
+
+    if using_approx_learn:
+        for episode in range(n_episodes):
+            state = env.reset("smallClassic.lay")
+            features = initial_state
+
+            for i in range(n_steps):
+
+                action = policy(state)
+                state_prime, reward, done, info = env.step(action)
+                state = state_prime
+                approximate_learn(features, state, state_prime, reward, action)
+                features = update_states(features, info)
+
+                if done:
+                    break
+
+        # print the rewards to so we can see what's up
         rewards.append(info['episode']['r'])
         print([str(episode), str(info['episode']['r'])])
 
@@ -307,12 +343,9 @@ if __name__ == '__main__':
                      str(n_episodes) + '_q_learning.svg')
 
     # save q table
-    f = open('plots_and_data/q_table/q_table.pkl', 'wb')
-    pickle.dump(q_table, f)
-    f.close()
-
-    with open('plots_and_data/q_table/q_table.pkl', 'rb') as f:
-        x = pickle.load(f)
-    print(x)
+    if save_q_table:
+        with open('plots_and_data/q_table/q_table_trapped_q.pkl', 'wb') as f:
+            saved_table = dict(q_table)
+            pickle.dump(saved_table, f)
 
     env.close()
